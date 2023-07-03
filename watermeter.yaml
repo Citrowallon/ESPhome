@@ -1,0 +1,174 @@
+esphome:
+  name: watermeter
+  friendly_name: Hotwater Meter
+  platform: ESP8266
+  esp8266_restore_from_flash: true
+  board: d1_mini
+  on_boot:
+    priority: -100.0
+    then:
+      - lambda: "id(water_meter_counter_value) -= 1;"
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  services:
+    - service: atlantic_watermeter
+      variables:
+        calibration: int 
+      then:
+        - globals.set:
+            id: water_meter_counter_value  
+            value: !lambda "return ( calibration ) ;" 
+    - service: atlantic_watermeter_pulse
+      variables:
+        calibration: int 
+      then:
+        - globals.set:
+            id: pulse_counter_persistant  
+            value: !lambda "return ( calibration ) ;" 
+
+
+web_server:
+  port: 80
+
+prometheus:
+
+ota:
+
+captive_portal:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  use_address: 10.2.30.59
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esphome-Web-61C2B4"
+    password: "0YQXeZmJXPCX"
+
+globals:
+  - type: int
+    id: water_meter_counter_value
+    restore_value: yes
+  - type: int
+    id: pulse_counter_persistant
+    restore_value: yes
+
+script:
+  - id: reset_counter
+    then:
+      - lambda: |-
+          id(water_meter_counter_value) = 0;
+          id(pulse_counter_persistant) = 0;
+          
+
+binary_sensor:
+  - platform: gpio
+    name: pulse
+    icon: "mdi:water"
+    pin: 
+      number: D1
+      inverted: true
+    on_press:
+      then:
+        - lambda: "id(pulse_counter_persistant) += 1;"
+        - light.turn_on: led_internal
+    on_release:
+      then:
+        - light.turn_off: led_internal
+
+
+sensor:
+  - platform: pulse_meter
+    pin:
+      number: D1
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    accuracy_decimals: 0
+    unit_of_measurement: "L/min"
+    internal_filter: 50ms
+    id: water_meter
+    internal_filter_mode: PULSE
+    internal: true
+    total:
+      unit_of_measurement: 'L'
+      id: water_meter_counter_last_reboot
+      name: "Counter since last reboot"
+      device_class: water
+      state_class: total_increasing
+      icon: "mdi:water"
+      accuracy_decimals: 0
+      on_value:
+        then:
+          - lambda: "id(water_meter_counter_value) += 1;"
+
+  - platform: template
+    id: water_meter_counter_persistant
+    name: "Water Meter Counter Persistant"
+    unit_of_measurement: "L"
+    accuracy_decimals: 0
+    update_interval: 1s
+    icon: "mdi:water"  
+    lambda: |-
+      return (id(water_meter_counter_value));
+
+  - platform: template
+    id: pulse_counter
+    name: "Pulse Counter"
+    unit_of_measurement: "L"
+    device_class: water
+    state_class: total_increasing
+    accuracy_decimals: 0
+    update_interval: 1s
+    icon: "mdi:water"  
+    lambda: |-
+      return (id(pulse_counter_persistant));
+
+  - platform: wifi_signal
+    name: "WiFi Signal Sensor"
+    update_interval: 60s
+
+  - platform: uptime
+    name: Uptime Sensor
+
+
+switch:
+  - platform: restart
+    name: "Restart"
+
+  - platform: template
+    name: "reset counter button"
+    icon: "mdi:restart"
+    turn_on_action:
+      - script.execute: reset_counter
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: IP Address
+    ssid:
+      name: SSID 
+    mac_address:
+      name: Mac Address
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+
+
+light:
+  - platform: status_led
+    pin:
+      number: GPIO2
+      inverted: true
+    id: led_internal
+
+external_components:
+  - source: github://esphome/esphome@2022.9.2
+    components: [pulse_meter]
