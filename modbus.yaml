@@ -1,0 +1,155 @@
+  - name: SungrowSG5.0RS
+    type: tcp
+    host: 0.0.0.0
+    port: 502
+    retry_on_empty : true
+    #retries: 10
+    close_comm_on_error: true
+    delay: 5
+    #timeout: 5
+    sensors:
+
+      - name: Daily PV generation
+        unique_id: sg_daily_pv_gen_battery_discharge
+        slave: 1
+        address: 5002 # reg 5003
+        input_type: input
+        count: 1
+        data_type: uint16
+        swap: word
+        precision: 1
+        unit_of_measurement: kWh
+        device_class: energy
+        state_class: total_increasing
+        scale: 0.1
+        scan_interval: 60
+
+      - name: Total PV generation & battery discharge
+        unique_id: sg_total_pv_gen_battery_discharge
+        slave: 1
+        address: 5004 # reg 5003
+        input_type: input
+        count: 2
+        data_type: uint32
+        swap: word
+        unit_of_measurement: kWh
+        precision: 1
+        device_class: energy
+        state_class: total_increasing
+        scale: 0.1
+        scan_interval: 600
+
+      - name: Inverter temperature
+        unique_id: sg_inverter_temperature
+        slave: 1
+        address: 5007 # reg 5008
+        input_type: input
+        count: 1
+        data_type: int16
+        precision: 1
+        unit_of_measurement: °C
+        device_class: Temperature
+        scale: 0.1
+        scan_interval: 10
+
+      - name: MPPT1 voltage
+        unique_id: sg_mppt1_voltage
+        slave: 1
+        address: 5010 # reg 5011
+        input_type: input
+        count: 1
+        data_type: uint16
+        swap: word
+        precision: 1
+        unit_of_measurement: V
+        device_class: Voltage
+        scale: 0.1
+        scan_interval: 10
+
+      - name: MPPT1 current
+        unique_id: sg_mppt1_current
+        slave: 1
+        address: 5011 # reg 5012
+        input_type: input
+        count: 1
+        data_type: uint16
+        swap: word
+        precision: 2
+        unit_of_measurement: A
+        device_class: Current
+        scale: 0.1
+        scan_interval: 10
+
+      - name: MPPT2 voltage
+        unique_id: sg_mppt2_voltage
+        slave: 1
+        address: 5012 # reg 5013
+        input_type: input
+        count: 1
+        data_type: uint16
+        swap: word
+        precision: 1
+        unit_of_measurement: V
+        device_class: Voltage
+        scale: 0.1
+        scan_interval: 10
+
+      - name: MPPT2 current
+        unique_id: sg_mppt2_current
+        slave: 1
+        address: 5013 # reg 5014
+        input_type: input
+        count: 1
+        data_type: uint16
+        swap: word
+        precision: 2
+        unit_of_measurement: A
+        device_class: Current
+        scale: 0.1
+        scan_interval: 10
+
+      - name: Total DC power
+        unique_id: sg_total_dc_power
+        slave: 1
+        address: 5016 # reg 5017
+        input_type: input
+        count: 2
+        data_type: uint32
+        swap: word
+        precision: 0
+        unit_of_measurement: W
+        device_class: power
+        state_class: measurement
+        scale: 1
+        scan_interval: 5
+
+      - name: Phase A voltage
+        unique_id: sg_phase_a_voltage
+        slave: 1
+        address: 5018 # reg: 5019
+        input_type: input
+        count: 1
+        data_type: uint16
+        swap: word
+        precision: 1
+        unit_of_measurement: V
+        device_class: Voltage
+        state_class: measurement
+        scale: 0.1
+        scan_interval: 10
+
+      - name: Grid frequency
+        unique_id: sg_grid_frequency
+        slave: 1
+        address: 5035 # reg 5036
+        input_type: input
+        count: 1
+        data_type: uint16
+        swap: word
+        precision: 2
+        unit_of_measurement: "Hz"
+        device_class: frequency
+        state_class: measurement
+        scale: 0.1
+        scan_interval: 10
+
